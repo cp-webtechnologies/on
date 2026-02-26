@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP Webtechnologies Uganda</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="logo.png">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header with static buttons -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <img src="logo.png" alt="CP Webtechnologies" onerror="this.src='https://via.placeholder.com/50x50/2563eb/ffffff?text=CP'">
+                <span>CP Webtechnologies</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-buttons">
+                <a href="https://wa.me/+256775640199?text=Hello%20CP%20Webtechnologies!%20I%20need%20assistance." target="_blank" class="btn btn-whatsapp">
+                    <i class="fab fa-whatsapp"></i> Ask WhatsApp
+                </a>
+                <button class="btn btn-ai" id="toggleChatBtn">
+                    <i class="fas fa-robot"></i> Ask Our Assistant
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Sections -->
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="hero">
+            <div class="container hero-content">
+                <h1>Your Trusted ICT Partner in Uganda</h1>
+                <p>Innovative software, web, and IT solutions tailored for your business.</p>
+                <a href="#services" class="btn btn-primary">Explore Services</a>
+            </div>
+        </section>
+
+        <!-- Services Section (summary) -->
+        <section id="services" class="services">
+            <div class="container">
+                <h2>Our Services</h2>
+                <div class="service-grid">
+                    <div class="service-card">
+                        <i class="fas fa-code"></i>
+                        <h3>Software Engineering</h3>
+                        <p>Custom web & mobile apps, enterprise systems, API integrations.</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-globe"></i>
+                        <h3>Web Development</h3>
+                        <p>Corporate sites, e‑commerce, portals – responsive and modern.</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-paint-brush"></i>
+                        <h3>Graphics & Branding</h3>
+                        <p>Logos, business cards, social media creatives, video editing.</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-network-wired"></i>
+                        <h3>IT Infrastructure</h3>
+                        <p>CCTV, networking, cloud migration, maintenance contracts.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="about">
+            <div class="container">
+                <h2>About CP Webtechnologies</h2>
+                <p>Located at <strong>Arkright, Entebbe Road, Kampala</strong>, we have been delivering top‑notch ICT solutions since 2023. Our team combines technical expertise with local market understanding to help businesses thrive.</p>
+                <p><i class="fas fa-phone-alt"></i> +256 775 640 199 | <i class="fas fa-envelope"></i> cpwebtechs@gmail.com</p>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2>Contact Us</h2>
+                <p>Visit our office or reach out – we’re always ready to help.</p>
+                <address>
+                    <p><i class="fas fa-map-marker-alt"></i> Arkright, Entebbe Road, Kampala (near Shell Arkright)</p>
+                    <p><i class="fas fa-clock"></i> Mon‑Fri 8am‑7pm, Sat 9am‑3pm, Sun 24h (emergency)</p>
+                </address>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 CP Webtechnologies Uganda. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Chat Window (hidden by default) -->
+    <div class="chat-window" id="chatWindow">
+        <div class="header-info">
+            <img class="chatbot-logo" src="logo.png" alt="CP AI Assistant" onerror="this.src='https://via.placeholder.com/50x50/2563eb/ffffff?text=CP'">
+            <h2 class="logo-text">CP AI Assistant</h2>
+            <button class="close" id="closeChatBtn"><i class="fas fa-times"></i> close</button>
+        </div>
+        <div class="chat"></div>
+        <div class="input-area">
+            <input type="text" placeholder="Ask Cyprian....">
+            <button class="btn-icon" id="voice-btn"><i class="fas fa-microphone"></i></button>
+            <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="main.js"></script>
+    <script>
+        // Toggle chat window visibility
+        const toggleChatBtn = document.getElementById('toggleChatBtn');
+        const chatWindow = document.getElementById('chatWindow');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+
+        toggleChatBtn.addEventListener('click', () => {
+            chatWindow.style.display = 'flex'; // chat-window uses flex layout
+        });
+
+        closeChatBtn.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+            // Optionally reset conversation via the assistant instance
+            if (window.cpAssistant) {
+                window.cpAssistant.closeChat(); // resets messages but keeps window hidden
+            }
+        });
+
+        // Ensure assistant is initialized (already done in main.js)
+    </script>
+</body>
+</html>
