@@ -5,29 +5,30 @@ class CPAIAssistant {
     constructor() {
         this.API_KEY = 'AIzaSyDfBpIxzHvHcadNyhA7DWkOAmTIcq_e0q8';
         this.API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-        
+
         // Safely get DOM elements with null checks
         this.chatContainer = document.querySelector('.chat');
         this.inputField = document.querySelector('.input-area input');
         this.sendButton = document.getElementById('send-btn');
         this.voiceButton = document.getElementById('voice-btn');
         this.closeButton = document.querySelector('.close');
-        
-        
+
         // Check if all required elements exist
         this.checkElements();
-        
+
         this.isListening = false;
         this.recognition = null;
         this.synth = window.speechSynthesis;
         this.useFallbackMode = false;
         this.conversationContext = [];
-        
+
+        // Minimum time the typing indicator stays on screen (ms)
+        this.MIN_TYPING_TIME = 1100;
+
         // ============================================
         // CP WebTechnologies UGANDA Business Information
         // ============================================
         this.businessInfo = {
-            // Company Overview
             company: {
                 name: "CP WebTechnologies Uganda",
                 shortName: "CP WebTechs",
@@ -37,10 +38,8 @@ class CPAIAssistant {
                 founded: "2023",
                 location: "Arkright, Entebbe Road, Kampala, Uganda",
                 landmark: "Arkright Stage, near Shell Arkright",
-               // coordinates: "0.2869° N, 32.5811° E"
             },
-            
-            // Contact Information
+
             contacts: {
                 phone: "+256 775640199",
                 whatsapp: "+256 741 963128",
@@ -49,15 +48,8 @@ class CPAIAssistant {
                 support: "cpwebtechs@gmail.com",
                 sales: "cpwebtechs@gmail.com",
                 website: "https://cp-webtechnologies.github.io/-cp/index.html",
-                //social: {
-                  //  facebook: "@cpwebtechnologies",
-                   // twitter: "@cpwebtech_ug",
-                   // instagram: "@cpwebtechnologies",
-                   // linkedin: "cp-webtechnologies-uganda"
-               // }
             },
-            
-            // Business Hours (East African Time)
+
             hours: {
                 weekday: "Monday - Friday: 8:00 AM - 7:00 PM (EAT)",
                 saturday: "Saturday: 9:00 AM - 3:00 PM (EAT)",
@@ -65,8 +57,7 @@ class CPAIAssistant {
                 public_holidays: "Closed on public holidays but ready to respond to your inquiries",
                 emergency: "24/7 emergency support for critical systems: +256 775 640199"
             },
-            
-            // Complete Services with Rates (UGX)
+
             services: {
                 software_engineering: {
                     title: "💻 Software Engineering Services",
@@ -109,7 +100,7 @@ class CPAIAssistant {
                         }
                     ]
                 },
-                
+
                 web_development: {
                     title: "🌐 Web Development Services",
                     description: "Professional websites for Ugandan and international businesses",
@@ -158,7 +149,7 @@ class CPAIAssistant {
                         }
                     ]
                 },
-                
+
                 graphics_design: {
                     title: "🎨 Graphics & Design Services",
                     description: "Creative design solutions for your brand",
@@ -207,7 +198,7 @@ class CPAIAssistant {
                         }
                     ]
                 },
-                
+
                 it_infrastructure: {
                     title: "🔧 IT Infrastructure Services",
                     description: "Reliable hardware and network solutions",
@@ -256,7 +247,7 @@ class CPAIAssistant {
                         }
                     ]
                 },
-                
+
                 training: {
                     title: "📚 Training Programs",
                     description: "Practical ICT skills development",
@@ -311,7 +302,7 @@ class CPAIAssistant {
                         }
                     ]
                 },
-                
+
                 digital_marketing: {
                     title: "📱 Digital Marketing Services",
                     description: "Grow your business online",
@@ -347,8 +338,7 @@ class CPAIAssistant {
                     ]
                 }
             },
-            
-            // Pricing Summary by Category
+
             pricing_summary: {
                 websites: {
                     basic: "UGX 1,500,000 - 2,500,000",
@@ -382,20 +372,8 @@ class CPAIAssistant {
                     corporate: "UGX 1,000,000 - 3,000,000"
                 }
             },
-            
-            // Team Expertise
+
             expertise: {
-               // team_size: "12+ certified professionals",
-               // certifications: [
-                   // "Microsoft Certified Professional (MCP)",
-                   // "AWS Certified Cloud Practitioner",
-                  //  "Cisco Certified Network Associate (CCNA)",
-                  //  "Google IT Support Professional",
-                  //  "CompTIA Security+",
-                   // "Certified ScrumMaster (CSM)",
-                   // "Oracle Certified Associate",
-                   // "Google Analytics Certified"
-               // ],
                 industries: [
                     "Banking & Finance",
                     "Education & Schools",
@@ -410,30 +388,27 @@ class CPAIAssistant {
                 ],
                 languages: ["English", "Luganda", "Swahili", "Runyankole-Rukiga", "Runyoro-Rutooro"]
             },
-            
-            // Policies
+
             policies: {
                 cancellation: "📋 **Cancellation Policy:**\n• 30-day written notice required\n• Email: cpwebtechs@gmail.com\n• 25% early termination fee for annual contracts canceled within first 3 months\n• Completed projects: 30-day bug fix warranty\n• Refunds processed within 14 business days",
-                
+
                 payment: "💳 **Payment Terms:**\n• 50% deposit to start, 50% on completion\n• NET-15 for corporate clients\n• Accepted: Bank transfer (Stanbic, Centenary), MTN MoMo, Airtel Money\n•",
-                
+
                 sla: "⚡ **Service Level Agreement:**\n• Critical (System Down): 1 hour response\n• High Priority: 6 hours\n• Normal: 24 hours\n• Low Priority: 48 hours\n• On-site: Within 24 hours for Kampala, 48 hours upcountry\n• Page Load time: <3 sec\n• Server Response time: <2 sec",
-                
+
                 refund: "💰 **Refund Policy:**\n• 80% refund within 7 days of project start\n• 50% refund within 14 days\n• No refund after 30 days unless services are not deliverd as Agreed Upon\n• Custom software: Milestone-based payments, non-refundable after approval",
-                
+
                 warranty: "🛡️ **Warranty:**\n• 3 months free support after project completion\n• 1 year hardware warranty (parts & labor)\n• Bug fixes covered for 90 days\n• Free updates for 6 months",
-                
+
                 nda: "🔒 **Confidentiality:** NDA available upon request before project discussion. Your ideas are safe with us."
             },
-            
-            // Special Offers & Promotions
+
             promotions: {
                 current: "🎉 **Current Special Offers:**\n• 10% off for first-time clients\n• Free domain name with annual hosting\n• Refer a friend: Both get 15% off next project\n• Student discount: 20% off training programs\n• Bundle offer: Website + Logo + Social media - Save 25%\n• NGO discount: 15% off for registered non-profits",
-                
+
                 seasonal: "🌸 **Seasonal Offers:**\n• Back to School: 15% off training in January & August\n• Christmas Special: 10% off all services in December\n• Business Anniversary: Free maintenance for 3 months"
             },
-            
-            // FAQs - Comprehensive
+
             faqs: [
                 {
                     category: "general",
@@ -523,33 +498,33 @@ class CPAIAssistant {
                 }
             ]
         };
-        
+
         // System context for Gemini API
         this.systemContext = `You are Cyprian, a helpful AI assistant for CP WebTechnologies Uganda, located at Arkright on Entebbe Road, Kampala.
-        
+
         ABOUT CP WEBTECHNOLOGIES:
         - Full-service ICT company in Uganda since 2023
         - Services: Software Engineering, Web Development, Graphics Design, IT Infrastructure, Training, Digital Marketing
         - Location: Arkright, Entebbe Road, Kampala (Opposite Victoria Mall)
         - Contact: +256 775 640 199, cpwebtechs@gmail.com
         - Hours: Mon-Fri 8am-7pm, Sat 9am-3pm
-        
+
         YOUR PERSONALITY:
         - Friendly and professional
         - Use Ugandan context (mention UGX, local landmarks, Mobile Money)
         - Be enthusiastic about helping customers
         - Use emojis occasionally to be friendly 😊
         - Keep responses concise but informative
-        
+
         RULES:
         1. For business questions (services, pricing, contact, location), use the specific business information provided
         2. For general questions, provide helpful answers
         3. Always offer to help further or ask clarifying questions
         4. If you don't know something, offer to connect with a human
-        
+
         Current date: ${new Date().toLocaleDateString()}
         Current time in Uganda: ${new Date().toLocaleTimeString('en-UG', { timeZone: 'Africa/Kampala' })}`;
-        
+
         // Initialize if all elements exist
         if (this.allElementsExist()) {
             this.init();
@@ -557,7 +532,7 @@ class CPAIAssistant {
             console.error('Required DOM elements not found. Please check your HTML structure.');
         }
     }
-    
+
     checkElements() {
         console.log('Checking DOM elements:');
         console.log('- chatContainer:', this.chatContainer);
@@ -566,18 +541,18 @@ class CPAIAssistant {
         console.log('- voiceButton:', this.voiceButton);
         console.log('- closeButton:', this.closeButton);
     }
-    
+
     allElementsExist() {
         return this.chatContainer && this.inputField && this.sendButton && this.voiceButton && this.closeButton;
     }
-    
+
     init() {
         this.setupEventListeners();
         this.initializeSpeechRecognition();
         this.addWelcomeMessage();
         this.testAPIConnection();
     }
-    
+
     async testAPIConnection() {
         try {
             const response = await this.getGeminiResponse("Hello, this is a test message.");
@@ -587,30 +562,24 @@ class CPAIAssistant {
             this.useFallbackMode = true;
         }
     }
-    
+
     setupEventListeners() {
-        // Send message on button click
         this.sendButton.addEventListener('click', () => this.sendMessage());
-        
-        // Send message on Enter key
+
         this.inputField.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendMessage();
         });
-        
-        // Voice input button
+
         this.voiceButton.addEventListener('click', () => this.toggleVoiceInput());
-        
-        // Close button
         this.closeButton.addEventListener('click', () => this.closeChat());
-        
-        // Handle visibility change
+
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && this.isListening) {
                 this.stopVoiceInput();
             }
         });
     }
-    
+
     initializeSpeechRecognition() {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -618,19 +587,19 @@ class CPAIAssistant {
             this.recognition.continuous = false;
             this.recognition.interimResults = false;
             this.recognition.lang = 'en-UG';
-            
+
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 this.inputField.value = transcript;
                 this.sendMessage();
             };
-            
+
             this.recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 this.showNotification('Voice input error. Please try again.', 'error');
                 this.stopVoiceInput();
             };
-            
+
             this.recognition.onend = () => {
                 this.stopVoiceInput();
             };
@@ -639,20 +608,20 @@ class CPAIAssistant {
             console.warn('Speech recognition not supported');
         }
     }
-    
+
     toggleVoiceInput() {
         if (!this.recognition) {
             this.showNotification('Voice input is not supported in your browser', 'error');
             return;
         }
-        
+
         if (this.isListening) {
             this.stopVoiceInput();
         } else {
             this.startVoiceInput();
         }
     }
-    
+
     startVoiceInput() {
         try {
             this.recognition.start();
@@ -665,7 +634,7 @@ class CPAIAssistant {
             this.showNotification('Failed to start voice input', 'error');
         }
     }
-    
+
     stopVoiceInput() {
         if (this.isListening) {
             this.recognition.stop();
@@ -674,35 +643,47 @@ class CPAIAssistant {
             this.voiceButton.style.borderColor = '#ed8936';
         }
     }
-    
+
+    // =========================================================
+    // FIXED sendMessage: always shows typing indicator for a
+    // minimum duration before rendering the reply.
+    // =========================================================
     async sendMessage() {
         const message = this.inputField.value.trim();
         if (!message) return;
-        
+
         // Add user message to chat
         this.addMessage(message, 'user');
         this.inputField.value = '';
-        
+
         // Add to conversation context
         this.conversationContext.push({ role: 'user', content: message });
-        
+
         // Show typing indicator
         this.showTypingIndicator();
-        
+
+        const startedAt = Date.now();
+
         try {
             let response;
             if (this.useFallbackMode) {
                 response = this.getBusinessResponse(message);
-                setTimeout(() => {
-                    this.removeTypingIndicator();
-                    this.addMessage(response, 'model');
-                    this.conversationContext.push({ role: 'assistant', content: response });
-                }, 1500);
             } else {
                 response = await this.getGeminiResponse(message);
-                this.removeTypingIndicator();
-                this.addMessage(response, 'model');
-                this.conversationContext.push({ role: 'assistant', content: response });
+            }
+
+            // Enforce minimum typing indicator visibility
+            const elapsed = Date.now() - startedAt;
+            const remaining = Math.max(0, this.MIN_TYPING_TIME - elapsed);
+            if (remaining > 0) {
+                await new Promise(resolve => setTimeout(resolve, remaining));
+            }
+
+            this.removeTypingIndicator();
+            this.addMessage(response, 'model');
+            this.conversationContext.push({ role: 'assistant', content: response });
+
+            if (!this.useFallbackMode) {
                 this.speakResponse(response);
             }
         } catch (error) {
@@ -714,18 +695,17 @@ class CPAIAssistant {
             this.conversationContext.push({ role: 'assistant', content: fallbackResponse });
         }
     }
-    
+
     async getGeminiResponse(userMessage) {
         if (this.useFallbackMode) {
             return this.getBusinessResponse(userMessage);
         }
-        
-        // Check if it's a business query first
+
         const businessResponse = this.getBusinessResponse(userMessage);
         if (businessResponse && !businessResponse.includes("I'm here to help")) {
             return businessResponse;
         }
-        
+
         const requestBody = {
             contents: [{
                 parts: [{
@@ -737,7 +717,7 @@ class CPAIAssistant {
                 maxOutputTokens: 800,
             }
         };
-        
+
         try {
             const response = await fetch(`${this.API_URL}?key=${this.API_KEY}`, {
                 method: 'POST',
@@ -746,99 +726,89 @@ class CPAIAssistant {
                 },
                 body: JSON.stringify(requestBody)
             });
-            
+
             if (!response.ok) {
                 throw new Error(`API request failed: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                 return data.candidates[0].content.parts[0].text;
             } else {
                 throw new Error('Invalid response format');
             }
-            
+
         } catch (error) {
             console.error('Gemini API error:', error);
             this.useFallbackMode = true;
             return this.getBusinessResponse(userMessage);
         }
     }
-    
+
     getBusinessResponse(userMessage) {
         const message = userMessage.toLowerCase().trim();
         const biz = this.businessInfo;
-        
-        // ============================================
+
         // GREETINGS & GENERAL
-        // ============================================
         if (this.matchesAny(message, ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'yourself', 'good evening', 'howdy'])) {
             return `👋 Hello! I'm **Cyprian**, your CP WebTechnologies Uganda assistant. Welcome to CP WebTechnologies at Arkright, Entebbe Road!\n\nI can help you with:\n• 💻 Software & Web Development\n• 🎨 Graphics Design\n• 🔧 IT Infrastructure\n• 📚 Training Programs\n• 📱 Digital Marketing\n\nHow can I assist you today? 😊`;
         }
-        
+
         if (this.matchesAny(message, ['how are you', 'how are you doing', 'you doing'])) {
             return `I'm doing great, thank you for asking! 😊 Ready to help you with all your ICT needs here at CP WebTechnologies Uganda. How can I assist you today?`;
         }
-        
+
         if (this.matchesAny(message, ['thank', 'thanks', 'appreciate'])) {
             return `You're most welcome! 😊 It's my pleasure to help. Is there anything else you'd like to know about CP WebTechnologies? We're always here for you at our Arkright office on Entebbe Road!`;
         }
-        
+
         if (this.matchesAny(message, ['bye', 'goodbye', 'see you', 'later'])) {
             return `Thank you for reaching out to CP WebTechnologies! 👋 Feel free to contact us anytime at +256 775640199/+256 741963128 or visit us at Arkright, Entebbe Road. Have a great time! 😊`;
         }
-        
-        // ============================================
+
         // LOCATION & CONTACT
-        // ============================================
         if (this.matchesAny(message, ['where', 'location', 'address', 'office', 'find you', 'directions', 'map'])) {
             return biz.faqs[0].questions[0].a;
         }
-        
+
         if (this.matchesAny(message, ['hour', 'open', 'close', 'time', 'when', 'business hours', 'working hours'])) {
             return biz.hours.weekday + '\n' + biz.hours.saturday + '\n' + biz.hours.sunday + '\n\n🚨 **Emergency Support:** ' + biz.hours.emergency;
         }
-        
+
         if (this.matchesAny(message, ['contact', 'phone', 'call', 'whatsapp', 'person', 'human', 'people', 'live', 'email', 'reach', 'get in touch', 'talk to'])) {
             return biz.faqs[0].questions[2].a;
         }
-        
-        // ============================================
+
         // SERVICES - GENERAL
-        // ============================================
         if (this.matchesAny(message, ['service', 'offer', 'provide', 'do you do', 'what can you do', 'capabilities', 'solutions'])) {
             return biz.faqs[0].questions[3].a;
         }
-        
-        // ============================================
+
         // SOFTWARE ENGINEERING
-        // ============================================
         if (this.matchesAny(message, ['software', 'application', 'custom software', 'enterprise software', 'crm', 'erp', 'hr system'])) {
             return this.formatServiceCategory(biz.services.software_engineering);
         }
-        
-        // ============================================
+
         // WEB DEVELOPMENT
-        // ============================================
         if (this.matchesAny(message, ['web', 'website', 'site', 'ecommerce', 'online store', 'corporate site', 'school website', 'hotel website'])) {
             if (message.includes('ecommerce') || message.includes('online store') || message.includes('shop')) {
                 const webDev = biz.services?.web_development;
                 const items = webDev?.items || [];
                 const item = items[2];
-                
+
                 if (!item) {
                     return "E-commerce website information coming soon! Please contact us for a custom quote.";
                 }
-                
+
                 const name = item.name || 'E-commerce Website';
                 const description = item.description || 'Online store with payment integration';
                 const price = item.price_range || 'UGX 4,500,000 - 8,000,000';
                 const timeline = item.timeline || '6-10 weeks';
-                const includes = item.includes && Array.isArray(item.includes) 
+                const includes = item.includes && Array.isArray(item.includes)
                     ? item.includes.map(i => '• ' + i).join('\n')
                     : '• Product catalog\n• Payment integration\n• Order management';
-                
+
                 return `${name}\n${description}\n💰 **Price:** ${price}\n⏱️ **Timeline:** ${timeline}\n✅ **Includes:**\n${includes}`;
             }
             if (message.includes('school') || message.includes('college') || message.includes('university')) {
@@ -855,10 +825,8 @@ class CPAIAssistant {
             }
             return this.formatServiceCategory(biz.services.web_development);
         }
-        
-        // ============================================
+
         // MOBILE APP DEVELOPMENT
-        // ============================================
         if (this.matchesAny(message, ['app', 'mobile', 'android', 'ios', 'iphone', 'flutter', 'react native'])) {
             let softwareCat = this.formatServiceCategory(biz.services.software_engineering, true);
             return softwareCat + '\n\n📱 **Mobile App Pricing Summary:**\n' +
@@ -867,10 +835,8 @@ class CPAIAssistant {
                    '• Complex App: UGX 6,000,000 - 25,000,000\n\n' +
                    'Want to discuss your app idea? Visit us at Arkright for a free consultation! 😊 or call us at +256 775 640199';
         }
-        
-        // ============================================
+
         // GRAPHICS DESIGN
-        // ============================================
         if (this.matchesAny(message, ['graphic', 'design', 'logo', 'brand', 'business card', 'brochure', 'flyer', 'social media', 'video', 'animation', 'report'])) {
             if (message.includes('logo')) {
                 let item = biz.services.graphics_design.items[0];
@@ -886,10 +852,8 @@ class CPAIAssistant {
             }
             return this.formatServiceCategory(biz.services.graphics_design);
         }
-        
-        // ============================================
+
         // IT INFRASTRUCTURE
-        // ============================================
         if (this.matchesAny(message, ['infrastructure', 'it', 'hardware', 'server', 'network', 'cctv', 'camera', 'installation', 'cloud', 'maintenance', 'ups', 'power backup'])) {
             if (message.includes('cctv') || message.includes('camera') || message.includes('security')) {
                 return biz.faqs[1].questions[3].a;
@@ -900,29 +864,27 @@ class CPAIAssistant {
             }
             return this.formatServiceCategory(biz.services.it_infrastructure);
         }
-        
-        // ============================================
+
         // TRAINING PROGRAMS
-        // ============================================
         if (this.matchesAny(message, ['train', 'learn', 'course', 'class', 'workshop', 'bootcamp', 'study', 'education', 'skill'])) {
             if (message.includes('web') || (message.includes('development') && message.includes('bootcamp'))) {
                 const training = biz.services?.training;
                 const items = training?.items || [];
                 const item = items[0];
-                
+
                 if (!item) {
                     return "Web Development Bootcamp information coming soon! Contact us for details.";
                 }
-                
+
                 const name = item.name || 'Web Development Bootcamp';
                 const description = item.description || 'Comprehensive web development training';
                 const price = item.price || 'UGX 1,800,000';
                 const duration = item.duration || '6 weeks';
                 const schedule = item.schedule || 'Weekdays 6-8pm or Saturdays';
-                const includes = item.includes && Array.isArray(item.includes) 
+                const includes = item.includes && Array.isArray(item.includes)
                     ? item.includes.map(i => '• ' + i).join('\n')
                     : '• Hands-on projects\n• Certificate\n• Job support';
-                
+
                 return `${name}\n${description}\n💰 **Price:** ${price}\n⏱️ **Duration:** ${duration}\n📅 **Schedule:** ${schedule}\n✅ **Includes:**\n${includes}`;
             }
             if (message.includes('mobile') || message.includes('app')) {
@@ -943,17 +905,13 @@ class CPAIAssistant {
             }
             return this.formatServiceCategory(biz.services.training);
         }
-        
-        // ============================================
+
         // DIGITAL MARKETING
-        // ============================================
         if (this.matchesAny(message, ['marketing', 'seo', 'social media management', 'google ads', 'email marketing', 'digital marketing'])) {
             return this.formatServiceCategory(biz.services.digital_marketing);
         }
-        
-        // ============================================
+
         // PRICING & RATES
-        // ============================================
         if (this.matchesAny(message, ['price', 'cost', 'how much', 'rate', 'fee', 'charges', 'pricing', 'quotation', 'quote'])) {
             if (message.includes('website') || message.includes('web')) {
                 return biz.faqs[1].questions[0].a;
@@ -973,10 +931,9 @@ class CPAIAssistant {
             if (message.includes('maintenance')) {
                 return biz.services.it_infrastructure.items[4].name + ': ' + biz.services.it_infrastructure.items[4].price_range;
             }
-            
-            // General pricing summary
+
             return `💰 **CP WebTechnologies Pricing Summary (UGX):**
-            
+
 
 **Websites:**
 • Basic: 1.5M - 2.5M
@@ -1003,17 +960,13 @@ class CPAIAssistant {
 
 Want a detailed quote? Tell me what you need! 😊`;
         }
-        
-        // ============================================
+
         // PAYMENT METHODS
-        // ============================================
         if (this.matchesAny(message, ['payment', 'pay', 'money', 'momo', 'mtn', 'payment methods', 'airtel', 'bank', 'transfer', 'installment', 'deposit'])) {
             return biz.faqs[4].questions[0].a;
         }
-        
-        // ============================================
+
         // POLICIES
-        // ============================================
         if (this.matchesAny(message, ['policy', 'cancel', 'cancellation', 'policies', 'refund', 'warranty', 'guarantee', 'terms', 'conditions', 'sla', 'agreement'])) {
             if (message.includes('cancel')) {
                 return biz.policies.cancellation;
@@ -1024,15 +977,13 @@ Want a detailed quote? Tell me what you need! 😊`;
             if (message.includes('warranty')) {
                 return biz.policies.warranty;
             }
-             if (message.includes('sla') || message.includes('service level')) {
+            if (message.includes('sla') || message.includes('service level')) {
                 return biz.policies.sla;
             }
             return biz.policies.cancellation + '\n\n' + biz.policies.refund + '\n\n' + biz.policies.warranty;
         }
-        
-        // ============================================
+
         // PROCESS & TIMELINE
-        // ============================================
         if (this.matchesAny(message, ['process', 'how it works', 'methodology', 'steps', 'timeline', 'how long', 'duration', 'when can i get'])) {
             if (message.includes('website')) {
                 return biz.faqs[2].questions[0].a;
@@ -1042,26 +993,12 @@ Want a detailed quote? Tell me what you need! 😊`;
             }
             return biz.faqs[2].questions[0].a;
         }
-        console.log('Checking biz structure:', {
-            hasFaqs: !!biz.faqs,
-            faqsLength: biz.faqs?.length,
-            firstFaqQuestions: biz.faqs?.[0]?.questions?.length,
-            hasServices: !!biz.services,
-            serviceKeys: Object.keys(biz.services || {})
-        });
-        // ============================================
+
         // TEAM & EXPERTISE
-        // ============================================
         if (this.matchesAny(message, ['team', 'who are you', 'about you', 'expert', 'certified', 'qualification', 'experience', 'background'])) {
-            let certs = biz.expertise.certifications.map(cert => '• ' + cert).join('\n');
             let inds = biz.expertise.industries.map(ind => '• ' + ind).join('\n');
-            
+
             return `👥 **Our Team at CP WebTechnologies Uganda**
-
-**Team Size:** ${biz.expertise.team_size}
-
-**🏆 Key Certifications:**
-${certs}
 
 **Industries We Serve:**
 ${inds}
@@ -1072,10 +1009,8 @@ Our team combines technical expertise with local business understanding to deliv
 
 Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741 963128`;
         }
-        
-        // ============================================
+
         // SUPPORT & MAINTENANCE
-        // ============================================
         if (this.matchesAny(message, ['support', 'help', 'assist', 'after sales', 'maintenance', 'update', 'fix', 'issue', 'problem', 'not working'])) {
             if (message.includes('maintenance') || message.includes('update')) {
                 let item = biz.services.web_development.items[5];
@@ -1083,105 +1018,96 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
             }
             return biz.faqs[5].questions[0].a;
         }
-        
-        // ============================================
+
         // HOSTING
-        // ============================================
         if (this.matchesAny(message, ['hosting', 'host', 'server', 'domain'])) {
             return biz.faqs[3].questions[1].a;
         }
-        
-        // ============================================
+
         // PROMOTIONS & DISCOUNTS
-        // ============================================
         if (this.matchesAny(message, ['discount', 'offer', 'promo', 'special', 'deal', 'bundle', 'sale'])) {
             return biz.promotions.current + '\n\n' + biz.promotions.seasonal;
         }
-        
-        // ============================================
+
         // REFERRALS
-        // ============================================
         if (this.matchesAny(message, ['refer', 'friend', 'colleague', 'someone'])) {
             return "🤝 **Referral Program:**\n\nRefer a friend or colleague to CP WebTechnologies and both of you get **15% off** your next project!\n\nHow it works:\n1. Tell your friend about us\n2. They mention your name when contacting us\n3. Both get discount on next project\n\nShare the love! 💝";
         }
-        
-        // ============================================
+
         // TESTIMONIALS / PORTFOLIO
-        // ============================================
         if (this.matchesAny(message, ['testimonial', 'review', 'portfolio', 'past work', 'examples', 'samples', 'previous projects'])) {
             return "📁 **Our Work:**\n\nWe've successfully delivered projects for:\n• Banks and financial institutions\n• Schools and universities\n• Hotels and lodges\n• Retail stores and supermarkets\n• NGOs and non-profits\n• Government agencies\n\n**Want to see examples?**\n  visit our office at Arkright to see live demos!\n\nWe're happy to provide references upon request. 😊";
         }
-        
-        // ============================================
+
         // MEETING / CONSULTATION
-        // ============================================
         if (this.matchesAny(message, ['meet', 'consultation', 'appointment', 'discuss', 'talk in person', 'visit'])) {
             return "📅 **Book a Consultation:**\n\nWe'd love to meet you at our Arkright office!\n\n**Location:** Arkright, Entebbe Road, Kampala\n**Hours:** Mon-Fri 8am-7pm, Sat 9am-3pm\n\n**To schedule an appointment:**\n📞 Call: +256 775 640 199\n📧 Email: cpwebtechs@gmail.com\n💬 WhatsApp: +256 775 640 199\n\n**Free 30-minute initial consultation** to discuss your needs!\n\nWalk-ins welcome, but appointments ensure we have the right expert ready for you. 😊";
         }
-        
-        // ============================================
+
         // DEFAULT RESPONSE
-        // ============================================
         return "Thank you for reaching out to CP WebTechnologies Uganda! I'm here to help with all your ICT needs. 😊\n\n**You can ask me about:**\n📍 Location & Contact\n💻 Services & Pricing\n🕒 Business Hours\n📚 Training Programs\n🔧 Technical Support\n📋 Policies & FAQs\n\nWhat specific information are you looking for? Feel free to ask, or visit us at Arkright on Entebbe Road! or contact us on +256 775640199 / +256 741963128";
     }
-    
+
     matchesAny(message, keywords) {
         return keywords.some(keyword => message.includes(keyword));
     }
+
     formatServiceCategory(category, includeAll = false) {
-        // Add safety checks at the beginning
         if (!category) {
             return "Service information not available. Please contact us directly.";
         }
-        
+
         const title = category.title || 'Services';
         const description = category.description || '';
         const items = category.items || [];
-        
+
         let response = `**${title}**\n${description}\n\n`;
-        
+
         const itemsToShow = includeAll ? items : items.slice(0, 3);
-        
+
         itemsToShow.forEach(item => {
             if (!item) return;
-            
+
             const name = item.name || 'Service';
             const desc = item.description || '';
             const price = item.price_range || item.price || 'Contact for quote';
-            
+
             response += `**${name}**\n`;
             response += `• ${desc}\n`;
             response += `💰 Price: ${price}\n`;
-            
+
             if (item.timeline) response += `⏱️ Timeline: ${item.timeline}\n`;
             if (item.duration) response += `⏱️ Duration: ${item.duration}\n`;
-            
-            // Safely handle includes if they exist
+
             if (item.includes && Array.isArray(item.includes)) {
                 response += `✅ **Includes:**\n`;
                 item.includes.forEach(inc => {
                     response += `• ${inc}\n`;
                 });
             }
-            
+
             response += '\n';
         });
-        
-        
+
         if (!includeAll && items.length > 3) {
             response += `*...and ${items.length - 3} more services. Ask for details!*\n\n`;
         }
-        
+
         response += `For more details, visit us at Arkright or call +256 775 640 199 / +256 741963128 ! 😊`;
-        
+
         return response;
     }
+
+    // =========================================================
+    // FIXED addMessage: uses smart scrolling so long replies
+    // are read from the top instead of jumping to the bottom.
+    // =========================================================
     addMessage(text, sender) {
         const messageDiv = document.createElement('div');
         messageDiv.className = sender;
-        
+
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
+
         if (sender === 'model') {
             const avatar = document.createElement('img');
             avatar.className = 'bot-avatar';
@@ -1192,11 +1118,11 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
             avatar.onerror = () => {
                 avatar.src = 'https://via.placeholder.com/36/2563eb/ffffff?text=CP';
             };
-            
+
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
             messageContent.innerHTML = this.formatMessage(text) + `<span class="time">${time}</span>`;
-            
+
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(messageContent);
         } else {
@@ -1205,33 +1131,64 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
             messageContent.innerHTML = this.formatMessage(text) + `<span class="time">${time}</span>`;
             messageDiv.appendChild(messageContent);
         }
-        
+
         this.chatContainer.appendChild(messageDiv);
-        this.scrollToBottom();
+
+        // Smart scroll: show the top of long messages, bottom of short ones
+        this.scrollToElement(messageDiv);
     }
-    
+
+    // =========================================================
+    // Smart scroll helper: keeps long answers readable
+    // =========================================================
+    scrollToElement(el) {
+        if (!el || !this.chatContainer) return;
+
+        // Wait for layout so offsetHeight is accurate
+        requestAnimationFrame(() => {
+            const container = this.chatContainer;
+            const containerHeight = container.clientHeight;
+            const elHeight = el.offsetHeight;
+            const elTop = el.offsetTop;
+
+            if (elHeight > containerHeight * 0.6) {
+                // Long message: align its top near the top of the viewport
+                container.scrollTo({
+                    top: Math.max(0, elTop - 12),
+                    behavior: 'smooth'
+                });
+            } else {
+                // Short message: scroll to the bottom smoothly
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    }
+
     formatMessage(text) {
         // Convert URLs to links
         text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #2563eb; text-decoration: underline;">$1</a>');
-        
+
         // Convert emails to mailto links
         text = text.replace(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g, '<a href="mailto:$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
-        
+
         // Convert phone numbers to tel links (Ugandan format)
         text = text.replace(/(\+256\s?\d{3}\s?\d{3}\s?\d{3})/g, '<a href="tel:$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
-        
+
+        // Strip any raw <BR> tags users may have typed, normalise to newlines
+        text = text.replace(/<br\s*\/?>/gi, '\n');
+
         // Convert line breaks to <br>
         text = text.replace(/\n/g, '<br>');
-        
+
         // Bold formatting for headers
         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-        // Bullet points
-        text = text.replace(/•/g, '•');
-        
+
         return text;
     }
-    
+
     addWelcomeMessage() {
         setTimeout(() => {
             const welcome = `👋 **Welcome to CP WebTechnologies Uganda!**
@@ -1248,16 +1205,23 @@ I'm **Cyprian**, your AI assistant. We're located at **Arkright on Entebbe Road*
 • Do you do mobile apps?
 
 Just ask away!`;
-            
+
             this.addMessage(welcome, 'model');
         }, 500);
     }
-    
+
+    // =========================================================
+    // FIXED showTypingIndicator: uses smart scroll so the
+    // typing bubble is always visible while it animates.
+    // =========================================================
     showTypingIndicator() {
+        // Remove any existing indicator first
+        this.removeTypingIndicator();
+
         const indicator = document.createElement('div');
         indicator.className = 'model';
         indicator.id = 'typing-indicator';
-        
+
         const avatar = document.createElement('img');
         avatar.className = 'bot-avatar';
         avatar.src = 'logo.png';
@@ -1267,33 +1231,39 @@ Just ask away!`;
         avatar.onerror = () => {
             avatar.src = 'https://via.placeholder.com/36/2563eb/ffffff?text=CP';
         };
-        
+
         const dots = document.createElement('div');
         dots.className = 'typing-dots';
         dots.innerHTML = '<span></span><span></span><span></span>';
-        
+
         indicator.appendChild(avatar);
         indicator.appendChild(dots);
-        
+
         this.chatContainer.appendChild(indicator);
-        this.scrollToBottom();
+
+        // Scroll so the typing indicator is visible
+        this.scrollToElement(indicator);
     }
-    
+
     removeTypingIndicator() {
         const indicator = document.getElementById('typing-indicator');
         if (indicator) {
             indicator.remove();
         }
     }
-    
+
     scrollToBottom() {
-        this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+        if (!this.chatContainer) return;
+        this.chatContainer.scrollTo({
+            top: this.chatContainer.scrollHeight,
+            behavior: 'smooth'
+        });
     }
-    
+
     speakResponse(text) {
         if ('speechSynthesis' in window && text.split(' ').length < 30) {
             this.synth.cancel();
-            
+
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
             utterance.rate = 1;
@@ -1301,22 +1271,21 @@ Just ask away!`;
             this.synth.speak(utterance);
         }
     }
-    
+
     showNotification(message, type = 'info') {
-        // Remove existing notifications
         const existingNotifications = document.querySelectorAll('.notification');
         existingNotifications.forEach(n => n.remove());
-        
+
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         const colors = {
             error: '#e53e3e',
             info: '#3182ce',
             success: '#38a169'
         };
-        
+
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -1330,17 +1299,16 @@ Just ask away!`;
             background: ${colors[type] || '#3182ce'};
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
-    
+
     closeChat() {
-        // Clear chat and reset
         this.chatContainer.innerHTML = '';
         this.addWelcomeMessage();
         this.inputField.value = '';
@@ -1352,17 +1320,19 @@ Just ask away!`;
 // Wait for DOM to be fully loaded before initializing
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, initializing CP WebTechnologies Uganda AI Assistant...');
-    
+
     // Small delay to ensure everything is ready
     setTimeout(() => {
         try {
-            window.cpAssistant = new CPAIAssistant();
-            console.log('✅ CP WebTechnologies AI Assistant initialized successfully');
+            if (!window.cpAssistant) {
+                window.cpAssistant = new CPAIAssistant();
+                console.log('✅ CP WebTechnologies AI Assistant initialized successfully');
+            }
         } catch (error) {
             console.error('❌ Failed to initialize CP AI Assistant:', error);
         }
     }, 100);
-    
+
     // Add animation styles
     const style = document.createElement('style');
     style.textContent = `
@@ -1370,18 +1340,12 @@ document.addEventListener('DOMContentLoaded', () => {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         @keyframes slideOut {
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
-        
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
+
         .typing-dots {
             background: white;
             padding: 16px 24px;
@@ -1390,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             display: flex;
             gap: 4px;
         }
-        
+
         .typing-dots span {
             width: 8px;
             height: 8px;
@@ -1399,15 +1363,15 @@ document.addEventListener('DOMContentLoaded', () => {
             display: inline-block;
             animation: bounce 1.4s infinite ease-in-out both;
         }
-        
+
         .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
         .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-        
+
         @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); } 
+            0%, 80%, 100% { transform: scale(0); }
             40% { transform: scale(1.0); }
         }
-        
+
         .message-content {
             max-width: 80%;
             padding: 12px 16px;
@@ -1416,20 +1380,20 @@ document.addEventListener('DOMContentLoaded', () => {
             word-wrap: break-word;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        
+
         .model .message-content {
             background: white;
             border: 1px solid #e2e8f0;
             border-bottom-left-radius: 5px;
             color: #1e293b;
         }
-        
+
         .user .message-content {
             background: #2563eb;
             color: white;
             border-bottom-right-radius: 5px;
         }
-        
+
         .time {
             font-size: 0.65rem;
             opacity: 0.7;
@@ -1437,25 +1401,25 @@ document.addEventListener('DOMContentLoaded', () => {
             text-align: right;
             margin-top: 6px;
         }
-        
+
         .user .time {
             color: rgba(255,255,255,0.8);
         }
-        
+
         .bot-avatar {
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #2563eb;
             flex-shrink: 0;
         }
-        
+
         .model, .user {
             display: flex;
             gap: 10px;
             align-items: flex-start;
             animation: messageSlide 0.3s ease;
         }
-        
+
         @keyframes messageSlide {
             from {
                 opacity: 0;
@@ -1466,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 transform: translateY(0);
             }
         }
-        
+
         .user {
             flex-direction: row-reverse;
         }
@@ -1479,15 +1443,14 @@ window.addEventListener('error', (event) => {
     console.error('Global error:', event.error ? event.error.message : 'Unknown error');
 });
 
-// Make sure the script runs after DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {});
-} else {
-    // DOM is already loaded
+// Fallback init if DOM is already loaded when this script runs
+if (document.readyState !== 'loading') {
     console.log('DOM already loaded, initializing...');
     setTimeout(() => {
         try {
-            window.cpAssistant = new CPAIAssistant();
+            if (!window.cpAssistant) {
+                window.cpAssistant = new CPAIAssistant();
+            }
         } catch (error) {
             console.error('Failed to initialize CP AI Assistant:', error);
         }
