@@ -6,14 +6,12 @@ class CPAIAssistant {
         this.API_KEY = 'AIzaSyDfBpIxzHvHcadNyhA7DWkOAmTIcq_e0q8';
         this.API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-        // Safely get DOM elements with null checks
         this.chatContainer = document.querySelector('.chat');
         this.inputField = document.querySelector('.input-area input');
         this.sendButton = document.getElementById('send-btn');
         this.voiceButton = document.getElementById('voice-btn');
         this.closeButton = document.querySelector('.close');
 
-        // Check if all required elements exist
         this.checkElements();
 
         this.isListening = false;
@@ -22,8 +20,8 @@ class CPAIAssistant {
         this.useFallbackMode = false;
         this.conversationContext = [];
 
-        // Minimum time the typing indicator stays on screen (ms)
-        this.MIN_TYPING_TIME = 1100;
+        // Minimum time the typing indicator stays on screen (2.5 seconds)
+        this.MIN_TYPING_TIME = 2500;
 
         // ============================================
         // CP WebTechnologies UGANDA Business Information
@@ -525,7 +523,6 @@ class CPAIAssistant {
         Current date: ${new Date().toLocaleDateString()}
         Current time in Uganda: ${new Date().toLocaleTimeString('en-UG', { timeZone: 'Africa/Kampala' })}`;
 
-        // Initialize if all elements exist
         if (this.allElementsExist()) {
             this.init();
         } else {
@@ -555,7 +552,7 @@ class CPAIAssistant {
 
     async testAPIConnection() {
         try {
-            const response = await this.getGeminiResponse("Hello, this is a test message.");
+            await this.getGeminiResponse("Hello, this is a test message.");
             console.log('✅ API connection successful');
         } catch (error) {
             console.log('⚠️ Using fallback mode - API connection failed');
@@ -645,22 +642,20 @@ class CPAIAssistant {
     }
 
     // =========================================================
-    // FIXED sendMessage: always shows typing indicator for a
-    // minimum duration before rendering the reply.
+    // sendMessage: shows typing indicator, holds for MIN_TYPING_TIME,
+    // then renders the reply and scrolls to its TOP.
     // =========================================================
     async sendMessage() {
         const message = this.inputField.value.trim();
         if (!message) return;
 
-        // Add user message to chat
         this.addMessage(message, 'user');
         this.inputField.value = '';
-
-        // Add to conversation context
         this.conversationContext.push({ role: 'user', content: message });
 
-        // Show typing indicator
+        // Show the typing bubble and let the browser paint it
         this.showTypingIndicator();
+        await new Promise(r => setTimeout(r, 60));
 
         const startedAt = Date.now();
 
@@ -672,9 +667,9 @@ class CPAIAssistant {
                 response = await this.getGeminiResponse(message);
             }
 
-            // Enforce minimum typing indicator visibility
             const elapsed = Date.now() - startedAt;
             const remaining = Math.max(0, this.MIN_TYPING_TIME - elapsed);
+            console.log('[Chat] response ready in', elapsed, 'ms — waiting', remaining, 'ms more');
             if (remaining > 0) {
                 await new Promise(resolve => setTimeout(resolve, remaining));
             }
@@ -721,9 +716,7 @@ class CPAIAssistant {
         try {
             const response = await fetch(`${this.API_URL}?key=${this.API_KEY}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
             });
 
@@ -780,7 +773,7 @@ class CPAIAssistant {
             return biz.faqs[0].questions[2].a;
         }
 
-        // SERVICES - GENERAL
+        // SERVICES - GENERAL (checked BEFORE graphics/design so "which services" hits this)
         if (this.matchesAny(message, ['service', 'offer', 'provide', 'do you do', 'what can you do', 'capabilities', 'solutions'])) {
             return biz.faqs[0].questions[3].a;
         }
@@ -793,34 +786,19 @@ class CPAIAssistant {
         // WEB DEVELOPMENT
         if (this.matchesAny(message, ['web', 'website', 'site', 'ecommerce', 'online store', 'corporate site', 'school website', 'hotel website'])) {
             if (message.includes('ecommerce') || message.includes('online store') || message.includes('shop')) {
-                const webDev = biz.services?.web_development;
-                const items = webDev?.items || [];
-                const item = items[2];
-
-                if (!item) {
-                    return "E-commerce website information coming soon! Please contact us for a custom quote.";
-                }
-
-                const name = item.name || 'E-commerce Website';
-                const description = item.description || 'Online store with payment integration';
-                const price = item.price_range || 'UGX 4,500,000 - 8,000,000';
-                const timeline = item.timeline || '6-10 weeks';
-                const includes = item.includes && Array.isArray(item.includes)
-                    ? item.includes.map(i => '• ' + i).join('\n')
-                    : '• Product catalog\n• Payment integration\n• Order management';
-
-                return `${name}\n${description}\n💰 **Price:** ${price}\n⏱️ **Timeline:** ${timeline}\n✅ **Includes:**\n${includes}`;
+                const item = biz.services.web_development.items[2];
+                return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n⏱️ **Timeline:** ${item.timeline}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('school') || message.includes('college') || message.includes('university')) {
-                let item = biz.services.web_development.items[3];
+                const item = biz.services.web_development.items[3];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n⏱️ **Timeline:** ${item.timeline}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('hotel') || message.includes('restaurant') || message.includes('lodge')) {
-                let item = biz.services.web_development.items[4];
+                const item = biz.services.web_development.items[4];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n⏱️ **Timeline:** ${item.timeline}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('maintenance') || message.includes('update') || message.includes('support')) {
-                let item = biz.services.web_development.items[5];
+                const item = biz.services.web_development.items[5];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             return this.formatServiceCategory(biz.services.web_development);
@@ -828,7 +806,7 @@ class CPAIAssistant {
 
         // MOBILE APP DEVELOPMENT
         if (this.matchesAny(message, ['app', 'mobile', 'android', 'ios', 'iphone', 'flutter', 'react native'])) {
-            let softwareCat = this.formatServiceCategory(biz.services.software_engineering, true);
+            const softwareCat = this.formatServiceCategory(biz.services.software_engineering, true);
             return softwareCat + '\n\n📱 **Mobile App Pricing Summary:**\n' +
                    '• Simple App: UGX 2,000,000 - 8,000,000\n' +
                    '• Medium App: UGX 4,000,000 - 15,000,000\n' +
@@ -836,30 +814,30 @@ class CPAIAssistant {
                    'Want to discuss your app idea? Visit us at Arkright for a free consultation! 😊 or call us at +256 775 640199';
         }
 
-        // GRAPHICS DESIGN
-        if (this.matchesAny(message, ['graphic', 'design', 'logo', 'brand', 'business card', 'brochure', 'flyer', 'social media', 'video', 'animation', 'report'])) {
+        // GRAPHICS DESIGN (checked AFTER services so "which services" is not stolen)
+        if (this.matchesAny(message, ['graphic', 'graphics', 'design', 'logo', 'brand', 'business card', 'brochure', 'flyer', 'social media', 'video', 'animation', 'report'])) {
             if (message.includes('logo')) {
-                let item = biz.services.graphics_design.items[0];
+                const item = biz.services.graphics_design.items[0];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n⏱️ **Timeline:** ${item.timeline}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('business card')) {
-                let item = biz.services.graphics_design.items[1];
+                const item = biz.services.graphics_design.items[1];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n⏱️ **Timeline:** ${item.timeline}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('social media')) {
-                let item = biz.services.graphics_design.items[3];
+                const item = biz.services.graphics_design.items[3];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             return this.formatServiceCategory(biz.services.graphics_design);
         }
 
         // IT INFRASTRUCTURE
-        if (this.matchesAny(message, ['infrastructure', 'it', 'hardware', 'server', 'network', 'cctv', 'camera', 'installation', 'cloud', 'maintenance', 'ups', 'power backup'])) {
+        if (this.matchesAny(message, ['infrastructure', 'hardware', 'server', 'network', 'cctv', 'camera', 'installation', 'cloud', 'ups', 'power backup'])) {
             if (message.includes('cctv') || message.includes('camera') || message.includes('security')) {
                 return biz.faqs[1].questions[3].a;
             }
             if (message.includes('maintenance') || message.includes('support contract')) {
-                let item = biz.services.it_infrastructure.items[4];
+                const item = biz.services.it_infrastructure.items[4];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             return this.formatServiceCategory(biz.services.it_infrastructure);
@@ -868,39 +846,23 @@ class CPAIAssistant {
         // TRAINING PROGRAMS
         if (this.matchesAny(message, ['train', 'learn', 'course', 'class', 'workshop', 'bootcamp', 'study', 'education', 'skill'])) {
             if (message.includes('web') || (message.includes('development') && message.includes('bootcamp'))) {
-                const training = biz.services?.training;
-                const items = training?.items || [];
-                const item = items[0];
-
-                if (!item) {
-                    return "Web Development Bootcamp information coming soon! Contact us for details.";
-                }
-
-                const name = item.name || 'Web Development Bootcamp';
-                const description = item.description || 'Comprehensive web development training';
-                const price = item.price || 'UGX 1,800,000';
-                const duration = item.duration || '6 weeks';
-                const schedule = item.schedule || 'Weekdays 6-8pm or Saturdays';
-                const includes = item.includes && Array.isArray(item.includes)
-                    ? item.includes.map(i => '• ' + i).join('\n')
-                    : '• Hands-on projects\n• Certificate\n• Job support';
-
-                return `${name}\n${description}\n💰 **Price:** ${price}\n⏱️ **Duration:** ${duration}\n📅 **Schedule:** ${schedule}\n✅ **Includes:**\n${includes}`;
+                const item = biz.services.training.items[0];
+                return `${item.name}\n${item.description}\n💰 **Price:** ${item.price}\n⏱️ **Duration:** ${item.duration}\n📅 **Schedule:** ${item.schedule}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('mobile') || message.includes('app')) {
-                let item = biz.services.training.items[1];
-                return `${item.name}\n${item.description}\n💰 **Price:** ${item.price}\n⏱️ **Duration:** ${item.duration}\n📅 **Schedule:** ${(item.includes || []).map(i => '• ' + i).join('\n')}`;
+                const item = biz.services.training.items[1];
+                return `${item.name}\n${item.description}\n💰 **Price:** ${item.price}\n⏱️ **Duration:** ${item.duration}`;
             }
             if (message.includes('digital') || message.includes('computer basics') || message.includes('office')) {
-                let item = biz.services.training.items[2];
+                const item = biz.services.training.items[2];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price}\n⏱️ **Duration:** ${item.duration}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('cyber') || message.includes('security')) {
-                let item = biz.services.training.items[3];
+                const item = biz.services.training.items[3];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price}\n⏱️ **Duration:** ${item.duration}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             if (message.includes('corporate') || message.includes('company') || message.includes('staff') || message.includes('employees')) {
-                let item = biz.services.training.items[5];
+                const item = biz.services.training.items[5];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             return this.formatServiceCategory(biz.services.training);
@@ -913,18 +875,10 @@ class CPAIAssistant {
 
         // PRICING & RATES
         if (this.matchesAny(message, ['price', 'cost', 'how much', 'rate', 'fee', 'charges', 'pricing', 'quotation', 'quote'])) {
-            if (message.includes('website') || message.includes('web')) {
-                return biz.faqs[1].questions[0].a;
-            }
-            if (message.includes('app') || message.includes('mobile')) {
-                return biz.faqs[1].questions[1].a;
-            }
-            if (message.includes('train') || message.includes('course') || message.includes('learn')) {
-                return biz.faqs[1].questions[2].a;
-            }
-            if (message.includes('cctv') || message.includes('camera')) {
-                return biz.faqs[1].questions[3].a;
-            }
+            if (message.includes('website') || message.includes('web')) return biz.faqs[1].questions[0].a;
+            if (message.includes('app') || message.includes('mobile')) return biz.faqs[1].questions[1].a;
+            if (message.includes('train') || message.includes('course') || message.includes('learn')) return biz.faqs[1].questions[2].a;
+            if (message.includes('cctv') || message.includes('camera')) return biz.faqs[1].questions[3].a;
             if (message.includes('logo') || message.includes('brand')) {
                 return biz.services.graphics_design.items[0].name + ': ' + biz.services.graphics_design.items[0].price_range;
             }
@@ -933,7 +887,6 @@ class CPAIAssistant {
             }
 
             return `💰 **CP WebTechnologies Pricing Summary (UGX):**
-
 
 **Websites:**
 • Basic: 1.5M - 2.5M
@@ -968,26 +921,16 @@ Want a detailed quote? Tell me what you need! 😊`;
 
         // POLICIES
         if (this.matchesAny(message, ['policy', 'cancel', 'cancellation', 'policies', 'refund', 'warranty', 'guarantee', 'terms', 'conditions', 'sla', 'agreement'])) {
-            if (message.includes('cancel')) {
-                return biz.policies.cancellation;
-            }
-            if (message.includes('refund')) {
-                return biz.policies.refund;
-            }
-            if (message.includes('warranty')) {
-                return biz.policies.warranty;
-            }
-            if (message.includes('sla') || message.includes('service level')) {
-                return biz.policies.sla;
-            }
+            if (message.includes('cancel')) return biz.policies.cancellation;
+            if (message.includes('refund')) return biz.policies.refund;
+            if (message.includes('warranty')) return biz.policies.warranty;
+            if (message.includes('sla') || message.includes('service level')) return biz.policies.sla;
             return biz.policies.cancellation + '\n\n' + biz.policies.refund + '\n\n' + biz.policies.warranty;
         }
 
         // PROCESS & TIMELINE
         if (this.matchesAny(message, ['process', 'how it works', 'methodology', 'steps', 'timeline', 'how long', 'duration', 'when can i get'])) {
-            if (message.includes('website')) {
-                return biz.faqs[2].questions[0].a;
-            }
+            if (message.includes('website')) return biz.faqs[2].questions[0].a;
             if (message.includes('app')) {
                 return `📱 **Mobile App Development Timeline:**\n\n• Simple App: 6-8 weeks\n• Medium App: 10-14 weeks\n• Complex App: 16-24 weeks\n\n**Process:**\n1. Discovery (1-2 weeks)\n2. Design (2-3 weeks)\n3. Development (4-12 weeks)\n4. Testing (2-3 weeks)\n5. Deployment (1 week)\n6. Training & Support\n\nVisit us at Arkright to discuss your app!`;
             }
@@ -996,8 +939,7 @@ Want a detailed quote? Tell me what you need! 😊`;
 
         // TEAM & EXPERTISE
         if (this.matchesAny(message, ['team', 'who are you', 'about you', 'expert', 'certified', 'qualification', 'experience', 'background'])) {
-            let inds = biz.expertise.industries.map(ind => '• ' + ind).join('\n');
-
+            const inds = biz.expertise.industries.map(ind => '• ' + ind).join('\n');
             return `👥 **Our Team at CP WebTechnologies Uganda**
 
 **Industries We Serve:**
@@ -1013,7 +955,7 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
         // SUPPORT & MAINTENANCE
         if (this.matchesAny(message, ['support', 'help', 'assist', 'after sales', 'maintenance', 'update', 'fix', 'issue', 'problem', 'not working'])) {
             if (message.includes('maintenance') || message.includes('update')) {
-                let item = biz.services.web_development.items[5];
+                const item = biz.services.web_development.items[5];
                 return `${item.name}\n${item.description}\n💰 **Price:** ${item.price_range}\n✅ **Includes:**\n${(item.includes || []).map(i => '• ' + i).join('\n')}`;
             }
             return biz.faqs[5].questions[0].a;
@@ -1048,14 +990,25 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
         return "Thank you for reaching out to CP WebTechnologies Uganda! I'm here to help with all your ICT needs. 😊\n\n**You can ask me about:**\n📍 Location & Contact\n💻 Services & Pricing\n🕒 Business Hours\n📚 Training Programs\n🔧 Technical Support\n📋 Policies & FAQs\n\nWhat specific information are you looking for? Feel free to ask, or visit us at Arkright on Entebbe Road! or contact us on +256 775640199 / +256 741963128";
     }
 
+    // =========================================================
+    // matchesAny: short keywords ('hi', 'hey', 'it') must match
+    // as WHOLE WORDS so they don't fire inside "which", "graphic",
+    // "they", "with", etc.
+    // =========================================================
     matchesAny(message, keywords) {
-        return keywords.some(keyword => message.includes(keyword));
+        const exactOnly = new Set(['hi', 'hey', 'it']);
+        const tokens = message.split(/[^a-z0-9]+/i).filter(Boolean);
+
+        return keywords.some(keyword => {
+            if (exactOnly.has(keyword)) {
+                return tokens.includes(keyword);
+            }
+            return message.includes(keyword);
+        });
     }
 
     formatServiceCategory(category, includeAll = false) {
-        if (!category) {
-            return "Service information not available. Please contact us directly.";
-        }
+        if (!category) return "Service information not available. Please contact us directly.";
 
         const title = category.title || 'Services';
         const description = category.description || '';
@@ -1067,7 +1020,6 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
 
         itemsToShow.forEach(item => {
             if (!item) return;
-
             const name = item.name || 'Service';
             const desc = item.description || '';
             const price = item.price_range || item.price || 'Contact for quote';
@@ -1075,17 +1027,13 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
             response += `**${name}**\n`;
             response += `• ${desc}\n`;
             response += `💰 Price: ${price}\n`;
-
             if (item.timeline) response += `⏱️ Timeline: ${item.timeline}\n`;
             if (item.duration) response += `⏱️ Duration: ${item.duration}\n`;
 
             if (item.includes && Array.isArray(item.includes)) {
                 response += `✅ **Includes:**\n`;
-                item.includes.forEach(inc => {
-                    response += `• ${inc}\n`;
-                });
+                item.includes.forEach(inc => { response += `• ${inc}\n`; });
             }
-
             response += '\n';
         });
 
@@ -1094,13 +1042,12 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
         }
 
         response += `For more details, visit us at Arkright or call +256 775 640 199 / +256 741963128 ! 😊`;
-
         return response;
     }
 
     // =========================================================
-    // FIXED addMessage: uses smart scrolling so long replies
-    // are read from the top instead of jumping to the bottom.
+    // addMessage: appends a message and scrolls to its TOP
+    // (first line) so the user reads from the beginning.
     // =========================================================
     addMessage(text, sender) {
         const messageDiv = document.createElement('div');
@@ -1133,59 +1080,38 @@ Visit us at Arkright, Entebbe Road to meet our team! 😊 or call us at +256 741
         }
 
         this.chatContainer.appendChild(messageDiv);
-
-        // Smart scroll: show the top of long messages, bottom of short ones
         this.scrollToElement(messageDiv);
     }
 
     // =========================================================
-    // Smart scroll helper: keeps long answers readable
+    // scrollToElement: ALWAYS aligns the top of the new message
+    // to the top of the chat viewport. The user scrolls down
+    // manually to read the rest — exactly as requested.
     // =========================================================
     scrollToElement(el) {
         if (!el || !this.chatContainer) return;
 
-        // Wait for layout so offsetHeight is accurate
         requestAnimationFrame(() => {
             const container = this.chatContainer;
-            const containerHeight = container.clientHeight;
-            const elHeight = el.offsetHeight;
-            const elTop = el.offsetTop;
+            const containerRect = container.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            // Where the element sits, relative to the container's scroll origin
+            const relativeTop = elRect.top - containerRect.top + container.scrollTop;
 
-            if (elHeight > containerHeight * 0.6) {
-                // Long message: align its top near the top of the viewport
-                container.scrollTo({
-                    top: Math.max(0, elTop - 12),
-                    behavior: 'smooth'
-                });
-            } else {
-                // Short message: scroll to the bottom smoothly
-                container.scrollTo({
-                    top: container.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }
+            container.scrollTo({
+                top: Math.max(0, relativeTop - 8),
+                behavior: 'smooth'
+            });
         });
     }
 
     formatMessage(text) {
-        // Convert URLs to links
         text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #2563eb; text-decoration: underline;">$1</a>');
-
-        // Convert emails to mailto links
         text = text.replace(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g, '<a href="mailto:$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
-
-        // Convert phone numbers to tel links (Ugandan format)
         text = text.replace(/(\+256\s?\d{3}\s?\d{3}\s?\d{3})/g, '<a href="tel:$1" style="color: #2563eb; text-decoration: underline;">$1</a>');
-
-        // Strip any raw <BR> tags users may have typed, normalise to newlines
         text = text.replace(/<br\s*\/?>/gi, '\n');
-
-        // Convert line breaks to <br>
         text = text.replace(/\n/g, '<br>');
-
-        // Bold formatting for headers
         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
         return text;
     }
 
@@ -1210,12 +1136,7 @@ Just ask away!`;
         }, 500);
     }
 
-    // =========================================================
-    // FIXED showTypingIndicator: uses smart scroll so the
-    // typing bubble is always visible while it animates.
-    // =========================================================
     showTypingIndicator() {
-        // Remove any existing indicator first
         this.removeTypingIndicator();
 
         const indicator = document.createElement('div');
@@ -1240,16 +1161,12 @@ Just ask away!`;
         indicator.appendChild(dots);
 
         this.chatContainer.appendChild(indicator);
-
-        // Scroll so the typing indicator is visible
         this.scrollToElement(indicator);
     }
 
     removeTypingIndicator() {
         const indicator = document.getElementById('typing-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
+        if (indicator) indicator.remove();
     }
 
     scrollToBottom() {
@@ -1263,7 +1180,6 @@ Just ask away!`;
     speakResponse(text) {
         if ('speechSynthesis' in window && text.split(' ').length < 30) {
             this.synth.cancel();
-
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
             utterance.rate = 1;
@@ -1280,11 +1196,7 @@ Just ask away!`;
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
 
-        const colors = {
-            error: '#e53e3e',
-            info: '#3182ce',
-            success: '#38a169'
-        };
+        const colors = { error: '#e53e3e', info: '#3182ce', success: '#38a169' };
 
         notification.style.cssText = `
             position: fixed;
@@ -1317,11 +1229,12 @@ Just ask away!`;
     }
 }
 
-// Wait for DOM to be fully loaded before initializing
+// =========================================================
+// Bootstrap
+// =========================================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, initializing CP WebTechnologies Uganda AI Assistant...');
 
-    // Small delay to ensure everything is ready
     setTimeout(() => {
         try {
             if (!window.cpAssistant) {
@@ -1332,115 +1245,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('❌ Failed to initialize CP AI Assistant:', error);
         }
     }, 100);
-
-    // Add animation styles
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-
-        .typing-dots {
-            background: white;
-            padding: 16px 24px;
-            border-radius: 18px 18px 18px 4px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dots span {
-            width: 8px;
-            height: 8px;
-            background: #2563eb;
-            border-radius: 50%;
-            display: inline-block;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
-        }
-
-        .message-content {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .model .message-content {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-bottom-left-radius: 5px;
-            color: #1e293b;
-        }
-
-        .user .message-content {
-            background: #2563eb;
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-
-        .time {
-            font-size: 0.65rem;
-            opacity: 0.7;
-            display: block;
-            text-align: right;
-            margin-top: 6px;
-        }
-
-        .user .time {
-            color: rgba(255,255,255,0.8);
-        }
-
-        .bot-avatar {
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #2563eb;
-            flex-shrink: 0;
-        }
-
-        .model, .user {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            animation: messageSlide 0.3s ease;
-        }
-
-        @keyframes messageSlide {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .user {
-            flex-direction: row-reverse;
-        }
-    `;
-    document.head.appendChild(style);
-});
-
-// Global error handler
-window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error ? event.error.message : 'Unknown error');
 });
 
 // Fallback init if DOM is already loaded when this script runs
@@ -1456,3 +1260,7 @@ if (document.readyState !== 'loading') {
         }
     }, 100);
 }
+
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error ? event.error.message : 'Unknown error');
+});
