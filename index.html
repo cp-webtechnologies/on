@@ -7,12 +7,14 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="logo.png">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Custom CSS (versioned to bust browser cache) -->
+    <link rel="stylesheet" href="style.css?v=3">
     <style>
-        /* Smooth scrolling for the chat container */
+        /* Chat container: overflow-y MUST be auto for scrollTo to work.
+           Do NOT add scroll-behavior: smooth here — the JS handles
+           scrolling explicitly with { behavior: 'smooth' }. */
         .chat {
-            scroll-behavior: smooth;
+            overflow-y: auto;
             overscroll-behavior: contain;
         }
         .typing-indicator {
@@ -163,8 +165,8 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="main.js"></script>
+    <!-- JavaScript (versioned to bust browser cache) -->
+    <script src="main.js?v=3"></script>
     <script>
         // Toggle chat window visibility
         const toggleChatBtn = document.getElementById('toggleChatBtn');
@@ -172,18 +174,19 @@
         const closeChatBtn = document.getElementById('closeChatBtn');
 
         toggleChatBtn.addEventListener('click', () => {
-            chatWindow.style.display = 'flex'; // chat-window uses flex layout
+            chatWindow.style.display = 'flex';
+            // After opening, make sure the newest message is at the top of the view
+            if (window.cpAssistant) {
+                setTimeout(() => window.cpAssistant.scrollToBottom(), 50);
+            }
         });
 
         closeChatBtn.addEventListener('click', () => {
             chatWindow.style.display = 'none';
-            // Optionally reset conversation via the assistant instance
             if (window.cpAssistant) {
-                window.cpAssistant.closeChat(); // resets messages but keeps window hidden
+                window.cpAssistant.closeChat();
             }
         });
-
-        // Ensure assistant is initialized (already done in main.js)
     </script>
 </body>
 </html>
