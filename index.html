@@ -9,6 +9,48 @@
     <link rel="icon" type="image/x-icon" href="logo.png">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Smooth scrolling for the chat container */
+        .chat {
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .typing-dots {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 4px;
+        }
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
     <!-- Header with static buttons -->
